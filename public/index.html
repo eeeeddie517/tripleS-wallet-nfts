@@ -1,0 +1,99 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+  <meta charset="UTF-8">
+  <title>所有 tripleS 小卡</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+</head>
+<body class="bg-light">
+  <div class="container py-4">
+    <h1 class="text-center mb-4">📸 所有 tripleS NFT 小卡</h1>
+    <div class="text-center mb-4">
+      <a href="/collect.html" class="btn btn-outline-success">🔒 我的收藏（需登入）</a>
+    </div>
+
+    <div class="row mb-3 justify-content-center">
+      <div class="col-md-3">
+        <select id="filterSeason" class="form-select">
+          <option value="">📅 篩選 Season</option>
+        </select>
+      </div>
+      <div class="col-md-3">
+        <select id="filterMember" class="form-select">
+          <option value="">👤 篩選 Member</option>
+        </select>
+      </div>
+    </div>
+
+    <div id="cardList" class="row g-4 justify-content-center"></div>
+  </div>
+
+  <script>
+    let allNFTs = [];
+
+    async function fetchAllNFTs() {
+      const res = await fetch("https://api.opensea.io/api/v2/chain/matic/contract/0xa4b37be40f7b231Ee9574c4b16b7DDb7EAcDC99B/nfts?limit=100", {
+        headers: { "x-api-key": "01050f152a9940f9acd3f3674a998533" }
+      });
+      const data = await res.json();
+      return data.nfts || [];
+    }
+
+    function getTrait(nft, key) {
+      return nft?.traits?.find(t => t.trait_type.toLowerCase() === key)?.value || '';
+    }
+
+    function renderCards(nfts) {
+      const list = document.getElementById("cardList");
+      list.innerHTML = "";
+      nfts.forEach(nft => {
+        const img = nft.image_url || "https://via.placeholder.com/400x600";
+        const name = nft.name || "未命名";
+        const url = nft.opensea_url || "#";
+        list.innerHTML += `
+          <div class="col-md-3 col-sm-6">
+            <div class="card h-100 shadow-sm border-0">
+              <a href="${url}" target="_blank"><img src="${img}" class="card-img-top"></a>
+              <div class="card-body text-center">
+                <h6 class="card-title mb-0">${name}</h6>
+              </div>
+            </div>
+          </div>`;
+      });
+    }
+
+    function applyFilter() {
+      const season = document.getElementById("filterSeason").value;
+      const member = document.getElementById("filterMember").value;
+      const filtered = allNFTs.filter(nft => {
+        return (!season || getTrait(nft, "season") === season) &&
+               (!member || getTrait(nft, "member") === member);
+      });
+      renderCards(filtered);
+    }
+
+    async function init() {
+      const raw = await fetchAllNFTs();
+      allNFTs = raw.filter(nft => nft.name && nft.image_url);
+      const seasonSet = new Set(), memberSet = new Set();
+      allNFTs.forEach(n => {
+        const s = getTrait(n, "season");
+        const m = getTrait(n, "member");
+        if (s) seasonSet.add(s);
+        if (m) memberSet.add(m);
+      });
+      const seasonSel = document.getElementById("filterSeason");
+      [...seasonSet].sort().forEach(s => seasonSel.innerHTML += `<option value="${s}">${s}</option>`);
+      const memberSel = document.getElementById("filterMember");
+      [...memberSet].sort().forEach(m => memberSel.innerHTML += `<option value="${m}">${m}</option>`);
+
+      seasonSel.addEventListener("change", applyFilter);
+      memberSel.addEventListener("change", applyFilter);
+      renderCards(allNFTs);
+    }
+
+    window.addEventListener("DOMContentLoaded", init);
+  </script>
+</body>
+</html>
