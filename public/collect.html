@@ -1,50 +1,59 @@
 <!DOCTYPE html>
 <html lang="zh-Hant">
-<head>
-  <meta charset="UTF-8">
-  <title>我的收藏 - tripleS NFT</title>
-  <meta name="viewport" content="width=device-width, initial-scale=1">
-  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
-  <script src="/static/ramper.js"></script>
-</head>
-<body class="bg-light">
-  <div class="container py-5">
-    <h1 class="text-center mb-4">🔒 我的收藏</h1>
-    <div class="text-center mb-4">
-      <button id="loginBtn" class="btn btn-success">登入 Ramper 錢包</button>
-      <div id="userAddress" class="mt-3 text-muted small"></div>
+  <head>
+    <meta charset="UTF-8" />
+    <title>我的收藏 - tripleS NFT</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <link
+      href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css"
+      rel="stylesheet"
+    />
+    <script src="/static/ramper.js"></script>
+  </head>
+  <body class="bg-light">
+    <div class="container py-5">
+      <h1 class="text-center mb-4">🔒 我的收藏</h1>
+      <div class="text-center mb-4">
+        <button id="loginBtn" class="btn btn-success">登入 Ramper 錢包</button>
+        <div id="userAddress" class="mt-3 text-muted small"></div>
+      </div>
+      <div id="nftList" class="row g-4 justify-content-center"></div>
     </div>
-    <div id="nftList" class="row g-4 justify-content-center"></div>
-  </div>
 
-  <script>
-    let ramper;
+    <script>
+      let ramper;
 
-    async function fetchNFTs(address) {
-      const list = document.getElementById("nftList");
-      list.innerHTML = "<p class='text-center'>🔄 載入中...</p>";
+      async function fetchNFTs(address) {
+        const list = document.getElementById("nftList");
+        list.innerHTML = "<p class='text-center'>🔄 載入中...</p>";
 
-      try {
-        const res = await fetch(`https://api.opensea.io/api/v2/chain/matic/account/${address}/nfts?limit=50&contract_address=0xa4b37be40f7b231Ee9574c4b16b7DDb7EAcDC99B`, {
-          headers: { "x-api-key": "01050f152a9940f9acd3f3674a998533" }
-        });
-        const data = await res.json();
-        const nfts = data.nfts || [];
+        try {
+          const res = await fetch(
+            `https://api.opensea.io/api/v2/chain/matic/account/${address}/nfts?limit=50&contract_address=0xa4b37be40f7b231Ee9574c4b16b7DDb7EAcDC99B`,
+            {
+              headers: { "x-api-key": "01050f152a9940f9acd3f3674a998533" },
+            }
+          );
+          const data = await res.json();
+          const nfts = data.nfts || [];
 
-        if (nfts.length === 0) {
-          list.innerHTML = "<p class='text-center text-muted'>❌ 沒有找到持有的 tripleS 小卡</p>";
-          return;
-        }
+          if (nfts.length === 0) {
+            list.innerHTML =
+              "<p class='text-center text-muted'>❌ 沒有找到持有的 tripleS 小卡</p>";
+            return;
+          }
 
-        list.innerHTML = "";
-        nfts.forEach(nft => {
-          const img = nft.image_url || "https://via.placeholder.com/400x600?text=No+Image";
-          const name = nft.name || "未命名卡片";
-          const tokenUrl = nft.opensea_url || "#";
+          list.innerHTML = "";
+          nfts.forEach((nft) => {
+            const img =
+              nft.image_url ||
+              "https://via.placeholder.com/400x600?text=No+Image";
+            const name = nft.name || "未命名卡片";
+            const tokenUrl = nft.opensea_url || "#";
 
-          const col = document.createElement("div");
-          col.className = "col-md-3 col-sm-6";
-          col.innerHTML = `
+            const col = document.createElement("div");
+            col.className = "col-md-3 col-sm-6";
+            col.innerHTML = `
             <div class="card h-100 shadow-sm border-0 rounded-4">
               <a href="${tokenUrl}" target="_blank">
                 <img src="${img}" class="card-img-top rounded-top" alt="${name}">
@@ -54,35 +63,43 @@
               </div>
             </div>
           `;
-          list.appendChild(col);
-        });
-      } catch (err) {
-        console.error("撈取 NFT 錯誤：", err);
-        list.innerHTML = "<p class='text-danger text-center'>⚠️ 撈取 NFT 發生錯誤</p>";
-      }
-    }
-
-    window.addEventListener('DOMContentLoaded', async () => {
-      if (typeof Ramper === 'undefined') {
-        document.getElementById('userAddress').textContent = '❌ 無法載入 Ramper SDK';
-        return;
-      }
-
-      ramper = new Ramper({ appId: 'alzeakpmqx', networks: ['polygon'] });
-
-      document.getElementById('loginBtn').addEventListener('click', async () => {
-        try {
-          const result = await ramper.login({ provider: 'email' });
-          const address = result?.user?.wallet?.address;
-          document.getElementById('userAddress').innerHTML = `✅ 已登入錢包：<strong>${address}</strong>`;
-          document.getElementById('loginBtn').style.display = 'none';
-
-          fetchNFTs(address);
+            list.appendChild(col);
+          });
         } catch (err) {
-          document.getElementById('userAddress').textContent = '❌ 登入失敗：' + err.message;
+          console.error("撈取 NFT 錯誤：", err);
+          list.innerHTML =
+            "<p class='text-danger text-center'>⚠️ 撈取 NFT 發生錯誤</p>";
         }
+      }
+
+      window.addEventListener("DOMContentLoaded", async () => {
+        if (typeof Ramper === "undefined") {
+          document.getElementById("userAddress").textContent =
+            "❌ 無法載入 Ramper SDK";
+          return;
+        }
+
+        ramper = new Ramper({ appId: "alzeakpmqx", networks: ["polygon"] });
+
+        document
+          .getElementById("loginBtn")
+          .addEventListener("click", async () => {
+            try {
+              const result = await ramper.login({ provider: "email" });
+              const address = result?.user?.wallet?.address;
+              document.getElementById(
+                "userAddress"
+              ).innerHTML = `✅ 已登入錢包：<strong>${address}</strong>`;
+              document.getElementById("loginBtn").style.display = "none";
+
+              fetchNFTs(address);
+            } catch (err) {
+              document.getElementById("userAddress").textContent =
+                "❌ 登入失敗：" + err.message;
+            }
+          });
       });
-    });
-  </script>
-</body>
+    </script>
+    <!-- force redeploy -->
+  </body>
 </html>
